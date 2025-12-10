@@ -1,5 +1,7 @@
 # SeedBox Control Panel - Documentation Index
 
+SeedBox Control Panel — unified web interface to manage Plex, Tautulli, uTorrent, ruTorrent, Radarr, Sonarr, Overseerr, and Docker-based services.
+
 Welcome to the SeedBox Control Panel documentation. This is your central hub for all project information.
 
 ## 📚 Quick Navigation
