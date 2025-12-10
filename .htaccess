@@ -1,0 +1,66 @@
+# PWA Configuration for SeedBox Control Panel
+
+# Enable compression
+<IfModule mod_deflate.c>
+  AddOutputFilterByType DEFLATE text/html text/plain text/xml text/css text/javascript application/javascript application/json
+</IfModule>
+
+# Cache control headers
+<IfModule mod_expires.c>
+  ExpiresActive On
+  
+  # Cache HTML for 1 day (for updates)
+  ExpiresByType text/html "access plus 1 day"
+  
+  # Cache manifest for 1 hour
+  ExpiresByType application/manifest+json "access plus 1 hour"
+  
+  # Cache service worker for 1 hour
+  AddType application/javascript .js
+  <FilesMatch "^sw\.js$">
+    ExpiresByType application/javascript "access plus 1 hour"
+  </FilesMatch>
+  
+  # Cache assets for 1 month
+  ExpiresByType text/css "access plus 1 month"
+  ExpiresByType application/javascript "access plus 1 month"
+  ExpiresByType image/svg+xml "access plus 1 month"
+</IfModule>
+
+# Proper MIME types
+AddType application/manifest+json .json
+AddType application/javascript .js
+
+# Service Worker and Manifest CORS headers
+<FilesMatch "\.(json|js)$">
+  Header set Access-Control-Allow-Origin "*"
+  Header set Cache-Control "public, max-age=3600"
+</FilesMatch>
+
+# Ensure service worker is not cached too long
+<FilesMatch "^sw\.js$">
+  Header set Cache-Control "public, max-age=3600, must-revalidate"
+</FilesMatch>
+
+# Rewrite rules for single-page app
+<IfModule mod_rewrite.c>
+  RewriteEngine On
+  RewriteBase /
+  
+  # Skip rules for actual files
+  RewriteCond %{REQUEST_FILENAME} -f
+  RewriteCond %{REQUEST_FILENAME} -d
+  RewriteRule ^ - [L]
+  
+  # Rewrite everything else to index.html
+  RewriteRule ^ index.html [QSA,L]
+</IfModule>
+
+# Security headers
+Header set X-Content-Type-Options "nosniff"
+Header set X-Frame-Options "SAMEORIGIN"
+Header set X-XSS-Protection "1; mode=block"
+Header set Referrer-Policy "strict-origin-when-cross-origin"
+
+# HTTPS only (uncomment when using SSL)
+# Header set Strict-Transport-Security "max-age=31536000; includeSubDomains"

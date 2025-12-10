@@ -1,0 +1,91 @@
+{
+  "name": "SeedBox Control Panel",
+  "short_name": "SeedBox",
+  "description": "Docker Management System - Control Panel for managing media applications like Radarr, Sonarr, Plex, uTorrent, and Overseerr",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "theme_color": "#0f3460",
+  "background_color": "#1a1a2e",
+  "icons": [
+    {
+      "src": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'><rect fill='%230f3460' width='192' height='192'/><rect fill='%233B82F6' x='40' y='40' width='112' height='112' rx='8'/><text x='96' y='120' font-size='80' fill='%23ffffff' font-family='Arial' text-anchor='middle' font-weight='bold'>SB</text></svg>",
+      "sizes": "192x192",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    },
+    {
+      "src": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'><rect fill='%230f3460' width='512' height='512'/><defs><linearGradient id='grad' x1='0%' y1='0%' x2='100%' y2='100%'><stop offset='0%' style='stop-color:%233B82F6;stop-opacity:1' /><stop offset='100%' style='stop-color:%238b5cf6;stop-opacity:1' /></linearGradient></defs><rect fill='url(%23grad)' x='96' y='96' width='320' height='320' rx='20'/><text x='256' y='340' font-size='200' fill='%23ffffff' font-family='Arial' text-anchor='middle' font-weight='bold'>SB</text></svg>",
+      "sizes": "512x512",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 144 144'><rect fill='%230f3460' width='144' height='144'/><rect fill='%233B82F6' x='30' y='30' width='84' height='84' rx='6'/><text x='72' y='100' font-size='60' fill='%23ffffff' font-family='Arial' text-anchor='middle' font-weight='bold'>SB</text></svg>",
+      "sizes": "144x144",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    }
+  ],
+  "categories": ["productivity"],
+  "screenshots": [
+    {
+      "src": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 540 720'><rect fill='%231a1a2e' width='540' height='720'/><text x='270' y='50' font-size='36' fill='%233B82F6' font-family='Arial' text-anchor='middle' font-weight='bold'>SeedBox Control Panel</text><rect fill='%23374151' x='20' y='80' width='500' height='200' rx='12'/><text x='270' y='200' font-size='24' fill='%239CA3AF' font-family='Arial' text-anchor='middle'>System Monitoring</text></svg>",
+      "sizes": "540x720",
+      "type": "image/svg+xml",
+      "form_factor": "narrow"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Dashboard",
+      "short_name": "Dashboard",
+      "description": "View system dashboard and application status",
+      "url": "./index.html?tab=dashboard",
+      "icons": [
+        {
+          "src": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 96 96'><rect fill='%233B82F6' width='96' height='96'/><text x='48' y='65' font-size='48' fill='%23ffffff' font-family='Arial' text-anchor='middle' font-weight='bold'>D</text></svg>",
+          "sizes": "96x96",
+          "type": "image/svg+xml"
+        }
+      ]
+    },
+    {
+      "name": "Applications",
+      "short_name": "Apps",
+      "description": "Manage Docker applications",
+      "url": "./index.html?tab=apps",
+      "icons": [
+        {
+          "src": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 96 96'><rect fill='%238b5cf6' width='96' height='96'/><text x='48' y='65' font-size='48' fill='%23ffffff' font-family='Arial' text-anchor='middle' font-weight='bold'>A</text></svg>",
+          "sizes": "96x96",
+          "type": "image/svg+xml"
+        }
+      ]
+    },
+    {
+      "name": "Logs",
+      "short_name": "Logs",
+      "description": "View system logs",
+      "url": "./index.html?tab=logs",
+      "icons": [
+        {
+          "src": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 96 96'><rect fill='%2310B981' width='96' height='96'/><text x='48' y='65' font-size='48' fill='%23ffffff' font-family='Arial' text-anchor='middle' font-weight='bold'>L</text></svg>",
+          "sizes": "96x96",
+          "type": "image/svg+xml"
+        }
+      ]
+    }
+  ],
+  "share_target": {
+    "action": "./share",
+    "method": "POST",
+    "enctype": "application/x-www-form-urlencoded",
+    "params": {
+      "title": "title",
+      "text": "text",
+      "url": "url"
+    }
+  }
+}

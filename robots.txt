@@ -1,0 +1,13 @@
+User-agent: *
+Allow: /
+Allow: /manifest.json
+
+# Disallow admin/sensitive paths if any
+# Disallow: /admin/
+# Disallow: /private/
+
+# Sitemap
+# Sitemap: https://your-domain.com/sitemap.xml
+
+# Crawl delay
+Crawl-delay: 1

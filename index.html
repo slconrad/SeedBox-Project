@@ -1,0 +1,1426 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SeedBox Control Panel</title>
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#0f3460">
+    <meta name="description" content="SeedBox Docker Management System - Control Panel for managing media applications">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="SeedBox">
+    <link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 180 180'><rect fill='%230f3460' width='180' height='180'/><text x='50%' y='50%' font-size='90' fill='%233B82F6' font-family='Arial' text-anchor='middle' dy='.3em' font-weight='bold'>SB</text></svg>">
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+        
+        * { font-family: 'Inter', sans-serif; }
+        
+        .gradient-bg {
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+        }
+        
+        .card-gradient {
+            background: linear-gradient(145deg, rgba(255,255,255,0.05) 0%, rgba(255,255,255,0.02) 100%);
+            backdrop-filter: blur(10px);
+        }
+        
+        .app-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+        }
+        
+        .status-online { animation: pulse 2s infinite; }
+        
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+        
+        .btn-action {
+            transition: all 0.3s ease;
+        }
+        
+        .btn-action:hover {
+            transform: scale(1.05);
+        }
+        
+        .app-header {
+            background-size: 80px;
+            background-repeat: no-repeat;
+            background-position: right 10px center;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .app-header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: inherit;
+            opacity: 0.15;
+            background-size: cover;
+            background-position: center;
+            filter: blur(20px);
+            transform: scale(1.2);
+        }
+        
+        .app-header-content {
+            position: relative;
+            z-index: 1;
+        }
+        
+        .app-logo {
+            width: 50px;
+            height: 50px;
+            object-fit: contain;
+            filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));
+        }
+        
+        .terminal {
+            background: #1a1a1a;
+            font-family: 'Courier New', monospace;
+            font-size: 13px;
+            line-height: 1.5;
+        }
+        
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+        
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: #1a1a2e; }
+        ::-webkit-scrollbar-thumb { background: #4a5568; border-radius: 4px; }
+    </style>
+</head>
+<body class="gradient-bg min-h-screen text-white">
+    <!-- Header -->
+    <header class="border-b border-gray-700/50 sticky top-0 z-50 bg-gray-900/80 backdrop-blur-lg">
+        <div class="container mx-auto px-6 py-4">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center space-x-3">
+                    <div class="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center">
+                        <i class="fas fa-server text-white"></i>
+                    </div>
+                    <div>
+                        <h1 class="text-xl font-bold">SeedBox Control Panel</h1>
+                        <p class="text-xs text-gray-400">Docker Management System</p>
+                    </div>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <span id="currentTime" class="text-sm text-gray-400"></span>
+                    <button onclick="refreshAll()" class="bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded-lg text-sm font-medium transition">
+                        <i class="fas fa-sync-alt mr-2"></i>Refresh All
+                    </button>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Navigation Tabs -->
+    <nav class="container mx-auto px-6 py-4">
+        <div class="flex space-x-2 bg-gray-800/50 rounded-xl p-2">
+            <button onclick="showTab('dashboard')" id="tab-dashboard" class="tab-btn flex-1 py-3 px-4 rounded-lg font-medium transition bg-blue-600">
+                <i class="fas fa-th-large mr-2"></i>Dashboard
+            </button>
+            <button onclick="showTab('apps')" id="tab-apps" class="tab-btn flex-1 py-3 px-4 rounded-lg font-medium transition hover:bg-gray-700">
+                <i class="fas fa-cubes mr-2"></i>Applications
+            </button>
+            <button onclick="showTab('logs')" id="tab-logs" class="tab-btn flex-1 py-3 px-4 rounded-lg font-medium transition hover:bg-gray-700">
+                <i class="fas fa-terminal mr-2"></i>Logs
+            </button>
+            <button onclick="showTab('deploy')" id="tab-deploy" class="tab-btn flex-1 py-3 px-4 rounded-lg font-medium transition hover:bg-gray-700">
+                <i class="fas fa-rocket mr-2"></i>Deploy Guide
+            </button>
+        </div>
+    </nav>
+
+    <main class="container mx-auto px-6 pb-10">
+        <!-- Dashboard Tab -->
+        <div id="content-dashboard" class="tab-content active">
+            <!-- System Stats -->
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+                <div class="card-gradient rounded-2xl p-6 border border-gray-700/50">
+                    <div class="flex items-center justify-between mb-4">
+                        <span class="text-gray-400 text-sm">Server Uptime</span>
+                        <i class="fas fa-clock text-green-400"></i>
+                    </div>
+                    <p id="uptime" class="text-2xl font-bold">Loading...</p>
+                    <p class="text-xs text-gray-500 mt-1">Since last restart</p>
+                </div>
+                <div class="card-gradient rounded-2xl p-6 border border-gray-700/50">
+                    <div class="flex items-center justify-between mb-4">
+                        <span class="text-gray-400 text-sm">CPU Usage</span>
+                        <i class="fas fa-microchip text-blue-400"></i>
+                    </div>
+                    <p id="cpuUsage" class="text-2xl font-bold">0%</p>
+                    <div class="w-full bg-gray-700 rounded-full h-2 mt-2">
+                        <div id="cpuBar" class="bg-blue-500 h-2 rounded-full transition-all" style="width: 0%"></div>
+                    </div>
+                </div>
+                <div class="card-gradient rounded-2xl p-6 border border-gray-700/50">
+                    <div class="flex items-center justify-between mb-4">
+                        <span class="text-gray-400 text-sm">Memory Used</span>
+                        <i class="fas fa-memory text-purple-400"></i>
+                    </div>
+                    <p id="memoryUsage" class="text-2xl font-bold">0 GB</p>
+                    <div class="w-full bg-gray-700 rounded-full h-2 mt-2">
+                        <div id="memoryBar" class="bg-purple-500 h-2 rounded-full transition-all" style="width: 0%"></div>
+                    </div>
+                </div>
+                <div class="card-gradient rounded-2xl p-6 border border-gray-700/50">
+                    <div class="flex items-center justify-between mb-4">
+                        <span class="text-gray-400 text-sm">Disk Space</span>
+                        <i class="fas fa-hdd text-orange-400"></i>
+                    </div>
+                    <p id="diskUsage" class="text-2xl font-bold">0 TB</p>
+                    <div class="w-full bg-gray-700 rounded-full h-2 mt-2">
+                        <div id="diskBar" class="bg-orange-500 h-2 rounded-full transition-all" style="width: 0%"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Charts -->
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+                <div class="card-gradient rounded-2xl p-6 border border-gray-700/50">
+                    <h3 class="text-lg font-semibold mb-4">Resource Usage (Last 24h)</h3>
+                    <canvas id="resourceChart" height="200"></canvas>
+                </div>
+                <div class="card-gradient rounded-2xl p-6 border border-gray-700/50">
+                    <h3 class="text-lg font-semibold mb-4">Storage Distribution</h3>
+                    <canvas id="storageChart" height="200"></canvas>
+                </div>
+            </div>
+
+            <!-- Quick Status -->
+            <div class="card-gradient rounded-2xl p-6 border border-gray-700/50">
+                <h3 class="text-lg font-semibold mb-4">Application Status Overview</h3>
+                <div class="grid grid-cols-2 md:grid-cols-5 gap-4" id="quickStatus">
+                    <!-- Generated by JS -->
+                </div>
+            </div>
+        </div>
+
+        <!-- Applications Tab -->
+        <div id="content-apps" class="tab-content">
+            <div class="flex justify-between items-center mb-6">
+                <h2 class="text-2xl font-bold">Docker Applications</h2>
+                <button onclick="installApp()" class="bg-green-600 hover:bg-green-700 px-4 py-2 rounded-lg text-sm font-medium transition">
+                    <i class="fas fa-plus mr-2"></i>Install New App
+                </button>
+            </div>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" id="appGrid">
+                <!-- Generated by JS -->
+            </div>
+        </div>
+
+        <!-- Logs Tab -->
+        <div id="content-logs" class="tab-content">
+            <div class="flex justify-between items-center mb-6">
+                <h2 class="text-2xl font-bold">System Logs</h2>
+                <select id="logFilter" onchange="filterLogs()" class="bg-gray-800 border border-gray-700 rounded-lg px-4 py-2 text-sm">
+                    <option value="all">All Applications</option>
+                    <option value="radarr">Radarr</option>
+                    <option value="sonarr">Sonarr</option>
+                    <option value="plex">Plex</option>
+                    <option value="utorrent">uTorrent</option>
+                    <option value="overseerr">Overseerr</option>
+                </select>
+            </div>
+            <div class="terminal rounded-xl p-4 h-96 overflow-y-auto border border-gray-700" id="logContainer">
+                <!-- Generated by JS -->
+            </div>
+        </div>
+
+        <!-- Deploy Guide Tab -->
+        <div id="content-deploy" class="tab-content">
+            <h2 class="text-2xl font-bold mb-6">Deployment Guide</h2>
+            
+            <!-- Step Navigation -->
+            <div class="flex space-x-2 mb-6 overflow-x-auto pb-2">
+                <button onclick="showDeployStep(1)" class="deploy-step-btn bg-blue-600 px-4 py-2 rounded-lg text-sm whitespace-nowrap">1. Prerequisites</button>
+                <button onclick="showDeployStep(2)" class="deploy-step-btn bg-gray-700 px-4 py-2 rounded-lg text-sm whitespace-nowrap">2. Backend Setup</button>
+                <button onclick="showDeployStep(3)" class="deploy-step-btn bg-gray-700 px-4 py-2 rounded-lg text-sm whitespace-nowrap">3. Nginx Config</button>
+                <button onclick="showDeployStep(4)" class="deploy-step-btn bg-gray-700 px-4 py-2 rounded-lg text-sm whitespace-nowrap">4. Docker Compose</button>
+                <button onclick="showDeployStep(5)" class="deploy-step-btn bg-gray-700 px-4 py-2 rounded-lg text-sm whitespace-nowrap">5. Final Steps</button>
+            </div>
+
+            <!-- Step 1: Prerequisites -->
+            <div id="deploy-step-1" class="deploy-step">
+                <div class="card-gradient rounded-2xl p-6 border border-gray-700/50">
+                    <h3 class="text-xl font-semibold mb-4"><i class="fas fa-list-check mr-2 text-blue-400"></i>Prerequisites</h3>
+                    <div class="space-y-4 text-gray-300">
+                        <p>Before deploying, ensure you have:</p>
+                        <ul class="list-disc list-inside space-y-2 ml-4">
+                            <li>Ubuntu 20.04+ or Debian 11+ server</li>
+                            <li>Root or sudo access</li>
+                            <li>Domain name pointed to your server (optional but recommended)</li>
+                            <li>Minimum 4GB RAM, 2 CPU cores, 100GB storage</li>
+                        </ul>
+                        
+                        <h4 class="font-semibold mt-6 mb-2">Install Required Packages:</h4>
+                        <pre class="terminal rounded-lg p-4 overflow-x-auto"><code># Update system
+sudo apt update && sudo apt upgrade -y
+
+# Install Docker
+curl -fsSL https://get.docker.com -o get-docker.sh
+sudo sh get-docker.sh
+sudo usermod -aG docker $USER
+
+# Install Docker Compose
+sudo apt install docker-compose -y
+
+# Install Python & dependencies
+sudo apt install python3 python3-pip python3-venv nginx -y
+
+# Install Node.js (for frontend if needed)
+curl -fsSL https://deb.nodesource.com/setup_18.x | sudo -E bash -
+sudo apt install nodejs -y</code></pre>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Step 2: Backend Setup -->
+            <div id="deploy-step-2" class="deploy-step hidden">
+                <div class="card-gradient rounded-2xl p-6 border border-gray-700/50">
+                    <h3 class="text-xl font-semibold mb-4"><i class="fas fa-code mr-2 text-green-400"></i>Python Backend (Flask API)</h3>
+                    
+                    <h4 class="font-semibold mb-2">Create project structure:</h4>
+                    <pre class="terminal rounded-lg p-4 overflow-x-auto mb-4"><code>mkdir -p /opt/seedbox-panel
+cd /opt/seedbox-panel
+python3 -m venv venv
+source venv/bin/activate
+pip install flask flask-cors docker psutil gunicorn</code></pre>
+
+                    <h4 class="font-semibold mb-2">Create app.py:</h4>
+                    <pre class="terminal rounded-lg p-4 overflow-x-auto text-xs" style="max-height: 500px;"><code>#!/usr/bin/env python3
+"""
+SeedBox Control Panel - Backend API
+Save as: /opt/seedbox-panel/app.py
+"""
+
+from flask import Flask, jsonify, request
+from flask_cors import CORS
+import docker
+import psutil
+import os
+import time
+from datetime import datetime, timedelta
+
+app = Flask(__name__)
+CORS(app)
+
+# Docker client
+client = docker.from_env()
+
+# App configurations
+APPS = {
+    'radarr': {
+        'name': 'Radarr',
+        'image': 'linuxserver/radarr:latest',
+        'port': 7878,
+        'volumes': {'/opt/seedbox/radarr/config': {'bind': '/config', 'mode': 'rw'},
+                    '/opt/seedbox/downloads': {'bind': '/downloads', 'mode': 'rw'},
+                    '/opt/seedbox/movies': {'bind': '/movies', 'mode': 'rw'}},
+        'environment': {'PUID': '1000', 'PGID': '1000', 'TZ': 'UTC'}
+    },
+    'sonarr': {
+        'name': 'Sonarr',
+        'image': 'linuxserver/sonarr:latest',
+        'port': 8989,
+        'volumes': {'/opt/seedbox/sonarr/config': {'bind': '/config', 'mode': 'rw'},
+                    '/opt/seedbox/downloads': {'bind': '/downloads', 'mode': 'rw'},
+                    '/opt/seedbox/tv': {'bind': '/tv', 'mode': 'rw'}},
+        'environment': {'PUID': '1000', 'PGID': '1000', 'TZ': 'UTC'}
+    },
+    'plex': {
+        'name': 'Plex',
+        'image': 'linuxserver/plex:latest',
+        'port': 32400,
+        'volumes': {'/opt/seedbox/plex/config': {'bind': '/config', 'mode': 'rw'},
+                    '/opt/seedbox/movies': {'bind': '/movies', 'mode': 'rw'},
+                    '/opt/seedbox/tv': {'bind': '/tv', 'mode': 'rw'}},
+        'environment': {'PUID': '1000', 'PGID': '1000', 'TZ': 'UTC', 'VERSION': 'docker'}
+    },
+    'utorrent': {
+        'name': 'uTorrent',
+        'image': 'ekho/utorrent:latest',
+        'port': 8080,
+        'volumes': {'/opt/seedbox/utorrent/config': {'bind': '/utorrent/settings', 'mode': 'rw'},
+                    '/opt/seedbox/downloads': {'bind': '/data', 'mode': 'rw'}},
+        'environment': {}
+    },
+    'overseerr': {
+        'name': 'Overseerr',
+        'image': 'linuxserver/overseerr:latest',
+        'port': 5055,
+        'volumes': {'/opt/seedbox/overseerr/config': {'bind': '/config', 'mode': 'rw'}},
+        'environment': {'PUID': '1000', 'PGID': '1000', 'TZ': 'UTC'}
+    }
+}
+
+def get_container(app_id):
+    """Get container by app_id"""
+    try:
+        return client.containers.get(f"seedbox-{app_id}")
+    except docker.errors.NotFound:
+        return None
+
+@app.route('/api/health', methods=['GET'])
+def health():
+    return jsonify({'status': 'ok', 'timestamp': datetime.now().isoformat()})
+
+@app.route('/api/system/stats', methods=['GET'])
+def system_stats():
+    """Get system statistics"""
+    # CPU
+    cpu_percent = psutil.cpu_percent(interval=1)
+    
+    # Memory
+    memory = psutil.virtual_memory()
+    memory_used = memory.used / (1024**3)  # GB
+    memory_total = memory.total / (1024**3)  # GB
+    
+    # Disk
+    disk = psutil.disk_usage('/')
+    disk_used = disk.used / (1024**4)  # TB
+    disk_total = disk.total / (1024**4)  # TB
+    disk_free = disk.free / (1024**4)  # TB
+    
+    # Uptime
+    boot_time = datetime.fromtimestamp(psutil.boot_time())
+    uptime = datetime.now() - boot_time
+    
+    return jsonify({
+        'cpu': {'percent': cpu_percent},
+        'memory': {
+            'used': round(memory_used, 2),
+            'total': round(memory_total, 2),
+            'percent': memory.percent
+        },
+        'disk': {
+            'used': round(disk_used, 2),
+            'total': round(disk_total, 2),
+            'free': round(disk_free, 2),
+            'percent': disk.percent
+        },
+        'uptime': {
+            'days': uptime.days,
+            'hours': uptime.seconds // 3600,
+            'minutes': (uptime.seconds % 3600) // 60,
+            'formatted': f"{uptime.days}d {uptime.seconds // 3600}h {(uptime.seconds % 3600) // 60}m"
+        }
+    })
+
+@app.route('/api/apps', methods=['GET'])
+def list_apps():
+    """List all applications with their status"""
+    apps = []
+    for app_id, config in APPS.items():
+        container = get_container(app_id)
+        status = 'stopped'
+        if container:
+            status = container.status
+        
+        apps.append({
+            'id': app_id,
+            'name': config['name'],
+            'status': status,
+            'port': config['port'],
+            'image': config['image'],
+            'installed': container is not None
+        })
+    return jsonify(apps)
+
+@app.route('/api/apps/<app_id>/install', methods=['POST'])
+def install_app(app_id):
+    """Install/deploy an application"""
+    if app_id not in APPS:
+        return jsonify({'error': 'App not found'}), 404
+    
+    config = APPS[app_id]
+    
+    # Create directories
+    for host_path in config['volumes'].keys():
+        os.makedirs(host_path, exist_ok=True)
+    
+    try:
+        # Pull image
+        client.images.pull(config['image'])
+        
+        # Create and start container
+        container = client.containers.run(
+            config['image'],
+            name=f"seedbox-{app_id}",
+            detach=True,
+            restart_policy={'Name': 'unless-stopped'},
+            ports={f"{config['port']}/tcp": config['port']},
+            volumes=config['volumes'],
+            environment=config['environment']
+        )
+        
+        return jsonify({
+            'success': True,
+            'message': f"{config['name']} installed successfully",
+            'container_id': container.id[:12]
+        })
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/apps/<app_id>/start', methods=['POST'])
+def start_app(app_id):
+    """Start an application"""
+    container = get_container(app_id)
+    if not container:
+        return jsonify({'error': 'Container not found'}), 404
+    
+    try:
+        container.start()
+        return jsonify({'success': True, 'message': f'{app_id} started'})
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/apps/<app_id>/stop', methods=['POST'])
+def stop_app(app_id):
+    """Stop an application"""
+    container = get_container(app_id)
+    if not container:
+        return jsonify({'error': 'Container not found'}), 404
+    
+    try:
+        container.stop()
+        return jsonify({'success': True, 'message': f'{app_id} stopped'})
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/apps/<app_id>/restart', methods=['POST'])
+def restart_app(app_id):
+    """Restart an application"""
+    container = get_container(app_id)
+    if not container:
+        return jsonify({'error': 'Container not found'}), 404
+    
+    try:
+        container.restart()
+        return jsonify({'success': True, 'message': f'{app_id} restarted'})
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/apps/<app_id>/update', methods=['POST'])
+def update_app(app_id):
+    """Update an application to latest version"""
+    if app_id not in APPS:
+        return jsonify({'error': 'App not found'}), 404
+    
+    config = APPS[app_id]
+    container = get_container(app_id)
+    
+    try:
+        # Pull latest image
+        client.images.pull(config['image'])
+        
+        if container:
+            # Stop and remove old container
+            container.stop()
+            container.remove()
+        
+        # Create new container with updated image
+        new_container = client.containers.run(
+            config['image'],
+            name=f"seedbox-{app_id}",
+            detach=True,
+            restart_policy={'Name': 'unless-stopped'},
+            ports={f"{config['port']}/tcp": config['port']},
+            volumes=config['volumes'],
+            environment=config['environment']
+        )
+        
+        return jsonify({
+            'success': True,
+            'message': f'{config["name"]} updated successfully',
+            'container_id': new_container.id[:12]
+        })
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/apps/<app_id>/delete', methods=['DELETE'])
+def delete_app(app_id):
+    """Delete/uninstall an application"""
+    container = get_container(app_id)
+    if not container:
+        return jsonify({'error': 'Container not found'}), 404
+    
+    try:
+        container.stop()
+        container.remove()
+        return jsonify({'success': True, 'message': f'{app_id} deleted'})
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/apps/<app_id>/logs', methods=['GET'])
+def get_logs(app_id):
+    """Get application logs"""
+    container = get_container(app_id)
+    if not container:
+        return jsonify({'error': 'Container not found'}), 404
+    
+    try:
+        logs = container.logs(tail=100, timestamps=True).decode('utf-8')
+        return jsonify({'logs': logs.split('\n')})
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+if __name__ == '__main__':
+    app.run(host='0.0.0.0', port=5000, debug=True)</code></pre>
+
+                    <h4 class="font-semibold mt-4 mb-2">Create systemd service:</h4>
+                    <pre class="terminal rounded-lg p-4 overflow-x-auto"><code># Create service file
+sudo nano /etc/systemd/system/seedbox-panel.service</code></pre>
+                    
+                    <pre class="terminal rounded-lg p-4 overflow-x-auto mt-2"><code>[Unit]
+Description=SeedBox Control Panel API
+After=network.target docker.service
+
+[Service]
+Type=simple
+User=root
+WorkingDirectory=/opt/seedbox-panel
+Environment=PATH=/opt/seedbox-panel/venv/bin
+ExecStart=/opt/seedbox-panel/venv/bin/gunicorn -w 4 -b 127.0.0.1:5000 app:app
+Restart=always
+
+[Install]
+WantedBy=multi-user.target</code></pre>
+
+                    <pre class="terminal rounded-lg p-4 overflow-x-auto mt-2"><code># Enable and start service
+sudo systemctl daemon-reload
+sudo systemctl enable seedbox-panel
+sudo systemctl start seedbox-panel</code></pre>
+                </div>
+            </div>
+
+            <!-- Step 3: Nginx Config -->
+            <div id="deploy-step-3" class="deploy-step hidden">
+                <div class="card-gradient rounded-2xl p-6 border border-gray-700/50">
+                    <h3 class="text-xl font-semibold mb-4"><i class="fas fa-globe mr-2 text-yellow-400"></i>Nginx Configuration</h3>
+                    
+                    <h4 class="font-semibold mb-2">Create Nginx config:</h4>
+                    <pre class="terminal rounded-lg p-4 overflow-x-auto"><code>sudo nano /etc/nginx/sites-available/seedbox-panel</code></pre>
+                    
+                    <pre class="terminal rounded-lg p-4 overflow-x-auto mt-2 text-xs"><code># /etc/nginx/sites-available/seedbox-panel
+
+upstream seedbox_api {
+    server 127.0.0.1:5000;
+}
+
+server {
+    listen 80;
+    server_name your-domain.com;  # Replace with your domain or IP
+    
+    # Redirect to HTTPS (uncomment after SSL setup)
+    # return 301 https://$server_name$request_uri;
+    
+    root /var/www/seedbox-panel;
+    index index.html;
+    
+    # Frontend
+    location / {
+        try_files $uri $uri/ /index.html;
+    }
+    
+    # API Proxy
+    location /api/ {
+        proxy_pass http://seedbox_api;
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection 'upgrade';
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_cache_bypass $http_upgrade;
+        proxy_read_timeout 86400;
+    }
+    
+    # Proxy to Radarr
+    location /radarr {
+        proxy_pass http://127.0.0.1:7878;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+    }
+    
+    # Proxy to Sonarr
+    location /sonarr {
+        proxy_pass http://127.0.0.1:8989;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+    }
+    
+    # Proxy to Plex
+    location /plex {
+        proxy_pass http://127.0.0.1:32400;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+    }
+    
+    # Proxy to uTorrent
+    location /utorrent {
+        proxy_pass http://127.0.0.1:8080;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+    }
+    
+    # Proxy to Overseerr
+    location /overseerr {
+        proxy_pass http://127.0.0.1:5055;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+    }
+}
+
+# HTTPS Server (uncomment after SSL setup)
+# server {
+#     listen 443 ssl http2;
+#     server_name your-domain.com;
+#     
+#     ssl_certificate /etc/letsencrypt/live/your-domain.com/fullchain.pem;
+#     ssl_certificate_key /etc/letsencrypt/live/your-domain.com/privkey.pem;
+#     
+#     # ... rest of config same as above
+# }</code></pre>
+
+                    <h4 class="font-semibold mt-4 mb-2">Enable site and restart Nginx:</h4>
+                    <pre class="terminal rounded-lg p-4 overflow-x-auto"><code># Create web directory
+sudo mkdir -p /var/www/seedbox-panel
+
+# Copy index.html to web directory
+sudo cp index.html /var/www/seedbox-panel/
+
+# Enable site
+sudo ln -s /etc/nginx/sites-available/seedbox-panel /etc/nginx/sites-enabled/
+
+# Test and restart
+sudo nginx -t
+sudo systemctl restart nginx</code></pre>
+
+                    <h4 class="font-semibold mt-4 mb-2">Setup SSL with Let's Encrypt:</h4>
+                    <pre class="terminal rounded-lg p-4 overflow-x-auto"><code># Install Certbot
+sudo apt install certbot python3-certbot-nginx -y
+
+# Get certificate
+sudo certbot --nginx -d your-domain.com
+
+# Auto-renewal (already set up by certbot)
+sudo certbot renew --dry-run</code></pre>
+                </div>
+            </div>
+
+            <!-- Step 4: Docker Compose -->
+            <div id="deploy-step-4" class="deploy-step hidden">
+                <div class="card-gradient rounded-2xl p-6 border border-gray-700/50">
+                    <h3 class="text-xl font-semibold mb-4"><i class="fab fa-docker mr-2 text-blue-400"></i>Docker Compose Setup</h3>
+                    
+                    <p class="text-gray-300 mb-4">Alternative: Use Docker Compose for easier management of all containers.</p>
+                    
+                    <h4 class="font-semibold mb-2">Create docker-compose.yml:</h4>
+                    <pre class="terminal rounded-lg p-4 overflow-x-auto text-xs" style="max-height: 600px;"><code># /opt/seedbox/docker-compose.yml
+
+version: '3.8'
+
+services:
+  radarr:
+    image: linuxserver/radarr:latest
+    container_name: seedbox-radarr
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=UTC
+    volumes:
+      - ./radarr/config:/config
+      - ./downloads:/downloads
+      - ./movies:/movies
+    ports:
+      - 7878:7878
+    restart: unless-stopped
+
+  sonarr:
+    image: linuxserver/sonarr:latest
+    container_name: seedbox-sonarr
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=UTC
+    volumes:
+      - ./sonarr/config:/config
+      - ./downloads:/downloads
+      - ./tv:/tv
+    ports:
+      - 8989:8989
+    restart: unless-stopped
+
+  plex:
+    image: linuxserver/plex:latest
+    container_name: seedbox-plex
+    network_mode: host
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=UTC
+      - VERSION=docker
+    volumes:
+      - ./plex/config:/config
+      - ./movies:/movies
+      - ./tv:/tv
+    restart: unless-stopped
+
+  utorrent:
+    image: ekho/utorrent:latest
+    container_name: seedbox-utorrent
+    volumes:
+      - ./utorrent/config:/utorrent/settings
+      - ./downloads:/data
+    ports:
+      - 8080:8080
+      - 6881:6881
+      - 6881:6881/udp
+    restart: unless-stopped
+
+  overseerr:
+    image: linuxserver/overseerr:latest
+    container_name: seedbox-overseerr
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=UTC
+    volumes:
+      - ./overseerr/config:/config
+    ports:
+      - 5055:5055
+    restart: unless-stopped
+
+  # Control Panel API
+  seedbox-api:
+    build: ./panel
+    container_name: seedbox-api
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ./:/opt/seedbox
+    ports:
+      - 5000:5000
+    restart: unless-stopped
+    depends_on:
+      - radarr
+      - sonarr
+      - plex
+      - overseerr
+
+networks:
+  default:
+    name: seedbox-network</code></pre>
+
+                    <h4 class="font-semibold mt-4 mb-2">Create directory structure:</h4>
+                    <pre class="terminal rounded-lg p-4 overflow-x-auto"><code>mkdir -p /opt/seedbox/{radarr,sonarr,plex,utorrent,overseerr}/config
+mkdir -p /opt/seedbox/{downloads,movies,tv}
+cd /opt/seedbox
+
+# Set permissions
+sudo chown -R 1000:1000 /opt/seedbox</code></pre>
+
+                    <h4 class="font-semibold mt-4 mb-2">Deploy with Docker Compose:</h4>
+                    <pre class="terminal rounded-lg p-4 overflow-x-auto"><code># Start all services
+docker-compose up -d
+
+# View logs
+docker-compose logs -f
+
+# Stop all services
+docker-compose down
+
+# Update all services
+docker-compose pull && docker-compose up -d</code></pre>
+                </div>
+            </div>
+
+            <!-- Step 5: Final Steps -->
+            <div id="deploy-step-5" class="deploy-step hidden">
+                <div class="card-gradient rounded-2xl p-6 border border-gray-700/50">
+                    <h3 class="text-xl font-semibold mb-4"><i class="fas fa-check-circle mr-2 text-green-400"></i>Final Steps & Security</h3>
+                    
+                    <h4 class="font-semibold mb-2">1. Configure Firewall:</h4>
+                    <pre class="terminal rounded-lg p-4 overflow-x-auto"><code># Setup UFW firewall
+sudo ufw allow ssh
+sudo ufw allow 80/tcp
+sudo ufw allow 443/tcp
+sudo ufw enable
+
+# Optional: Allow direct access to apps (if not using reverse proxy)
+# sudo ufw allow 7878/tcp  # Radarr
+# sudo ufw allow 8989/tcp  # Sonarr
+# sudo ufw allow 32400/tcp # Plex
+# sudo ufw allow 8080/tcp  # uTorrent
+# sudo ufw allow 5055/tcp  # Overseerr</code></pre>
+
+                    <h4 class="font-semibold mt-4 mb-2">2. Setup Authentication:</h4>
+                    <pre class="terminal rounded-lg p-4 overflow-x-auto"><code># Install htpasswd utility
+sudo apt install apache2-utils -y
+
+# Create password file
+sudo htpasswd -c /etc/nginx/.htpasswd admin
+
+# Add to Nginx location blocks:
+# auth_basic "Restricted";
+# auth_basic_user_file /etc/nginx/.htpasswd;</code></pre>
+
+                    <h4 class="font-semibold mt-4 mb-2">3. Access Your Applications:</h4>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+                        <div class="bg-gray-800/50 rounded-lg p-4">
+                            <p class="font-medium text-blue-400">Control Panel</p>
+                            <code class="text-sm text-gray-300">https://your-domain.com/</code>
+                        </div>
+                        <div class="bg-gray-800/50 rounded-lg p-4">
+                            <p class="font-medium text-orange-400">Radarr</p>
+                            <code class="text-sm text-gray-300">https://your-domain.com:7878</code>
+                        </div>
+                        <div class="bg-gray-800/50 rounded-lg p-4">
+                            <p class="font-medium text-blue-400">Sonarr</p>
+                            <code class="text-sm text-gray-300">https://your-domain.com:8989</code>
+                        </div>
+                        <div class="bg-gray-800/50 rounded-lg p-4">
+                            <p class="font-medium text-yellow-400">Plex</p>
+                            <code class="text-sm text-gray-300">https://your-domain.com:32400/web</code>
+                        </div>
+                        <div class="bg-gray-800/50 rounded-lg p-4">
+                            <p class="font-medium text-green-400">uTorrent</p>
+                            <code class="text-sm text-gray-300">https://your-domain.com:8080</code>
+                        </div>
+                        <div class="bg-gray-800/50 rounded-lg p-4">
+                            <p class="font-medium text-purple-400">Overseerr</p>
+                            <code class="text-sm text-gray-300">https://your-domain.com:5055</code>
+                        </div>
+                    </div>
+
+                    <h4 class="font-semibold mt-6 mb-2">4. Maintenance Commands:</h4>
+                    <pre class="terminal rounded-lg p-4 overflow-x-auto"><code># Check container status
+docker ps -a
+
+# View container logs
+docker logs -f seedbox-radarr
+
+# Restart a container
+docker restart seedbox-sonarr
+
+# Update a container
+docker pull linuxserver/radarr:latest
+docker-compose up -d radarr
+
+# Backup configs
+tar -czvf seedbox-backup-$(date +%Y%m%d).tar.gz /opt/seedbox/*/config
+
+# Monitor resources
+docker stats</code></pre>
+
+                    <div class="mt-6 p-4 bg-green-900/30 border border-green-700 rounded-lg">
+                        <h4 class="font-semibold text-green-400 mb-2"><i class="fas fa-party-horn mr-2"></i>Deployment Complete!</h4>
+                        <p class="text-gray-300">Your SeedBox control panel is now ready. Access it at your configured domain and start managing your media applications!</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Modal -->
+    <div id="modal" class="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-gray-800 rounded-2xl max-w-md w-full p-6 border border-gray-700">
+            <div class="flex justify-between items-center mb-4">
+                <h3 id="modalTitle" class="text-xl font-semibold">Modal Title</h3>
+                <button onclick="closeModal()" class="text-gray-400 hover:text-white">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div id="modalContent" class="text-gray-300">
+                <!-- Dynamic content -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Notification -->
+    <div id="toast" class="fixed bottom-6 right-6 bg-gray-800 border border-gray-700 rounded-xl p-4 shadow-xl transform translate-y-20 opacity-0 transition-all duration-300 z-50">
+        <div class="flex items-center space-x-3">
+            <i id="toastIcon" class="fas fa-check-circle text-green-400 text-xl"></i>
+            <p id="toastMessage" class="text-sm">Operation successful</p>
+        </div>
+    </div>
+
+    <script>
+        // Register Service Worker for PWA functionality
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('sw.js').then(reg => {
+                console.log('Service Worker registered successfully:', reg);
+            }).catch(err => {
+                console.log('Service Worker registration failed:', err);
+            });
+        }
+
+        // Application data with logos and brand colors
+        const apps = [
+            { 
+                id: 'radarr', 
+                name: 'Radarr', 
+                icon: 'fa-film', 
+                port: 7878, 
+                desc: 'Movie collection manager',
+                logo: 'https://raw.githubusercontent.com/Radarr/Radarr/develop/Logo/256.png',
+                gradient: 'from-amber-500/90 via-orange-500/80 to-yellow-600/90',
+                bgColor: '#FFC230'
+            },
+            { 
+                id: 'sonarr', 
+                name: 'Sonarr', 
+                icon: 'fa-tv', 
+                port: 8989, 
+                desc: 'TV series collection manager',
+                logo: 'https://raw.githubusercontent.com/Sonarr/Sonarr/develop/Logo/256.png',
+                gradient: 'from-sky-400/90 via-cyan-500/80 to-blue-500/90',
+                bgColor: '#00CCFF'
+            },
+            { 
+                id: 'plex', 
+                name: 'Plex', 
+                icon: 'fa-play-circle', 
+                port: 32400, 
+                desc: 'Media streaming server',
+                logo: 'https://www.plex.tv/wp-content/uploads/2022/04/plex-logo.png',
+                gradient: 'from-amber-400/90 via-yellow-500/80 to-orange-500/90',
+                bgColor: '#E5A00D'
+            },
+            { 
+                id: 'utorrent', 
+                name: 'uTorrent', 
+                icon: 'fa-download', 
+                port: 8080, 
+                desc: 'BitTorrent client',
+                logo: 'https://upload.wikimedia.org/wikipedia/commons/thumb/e/e4/Utorrent.png/240px-Utorrent.png',
+                gradient: 'from-green-400/90 via-lime-500/80 to-emerald-500/90',
+                bgColor: '#77B039'
+            },
+            { 
+                id: 'overseerr', 
+                name: 'Overseerr', 
+                icon: 'fa-search', 
+                port: 5055, 
+                desc: 'Media request manager',
+                logo: 'https://raw.githubusercontent.com/sct/overseerr/develop/public/logo_full.svg',
+                gradient: 'from-purple-500/90 via-violet-500/80 to-indigo-600/90',
+                bgColor: '#7B2FBF'
+            }
+        ];
+
+        // Simulated app status
+        let appStatus = {};
+        apps.forEach(app => {
+            appStatus[app.id] = {
+                status: Math.random() > 0.2 ? 'running' : 'stopped',
+                installed: Math.random() > 0.1,
+                uptime: Math.floor(Math.random() * 100) + ' hours'
+            };
+        });
+
+        // Simulated system stats
+        let systemStats = {
+            cpu: 35,
+            memory: { used: 12.5, total: 32, percent: 39 },
+            disk: { used: 2.8, total: 8, free: 5.2, percent: 35 },
+            uptime: { days: 45, hours: 12, minutes: 33 }
+        };
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            updateTime();
+            setInterval(updateTime, 1000);
+            renderApps();
+            renderQuickStatus();
+            initCharts();
+            updateSystemStats();
+            generateLogs();
+            
+            // Simulate real-time updates
+            setInterval(simulateUpdates, 5000);
+        });
+
+        function updateTime() {
+            document.getElementById('currentTime').textContent = new Date().toLocaleString();
+        }
+
+        function showTab(tabName) {
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+            document.querySelectorAll('.tab-btn').forEach(el => {
+                el.classList.remove('bg-blue-600');
+                el.classList.add('hover:bg-gray-700');
+            });
+            
+            document.getElementById(`content-${tabName}`).classList.add('active');
+            document.getElementById(`tab-${tabName}`).classList.add('bg-blue-600');
+            document.getElementById(`tab-${tabName}`).classList.remove('hover:bg-gray-700');
+        }
+
+        function renderApps() {
+            const grid = document.getElementById('appGrid');
+            grid.innerHTML = apps.map(app => {
+                const status = appStatus[app.id];
+                const isRunning = status.status === 'running';
+                
+                return `
+                    <div class="app-card card-gradient rounded-2xl border border-gray-700/50 overflow-hidden transition-all duration-300">
+                        <div class="app-header bg-gradient-to-r ${app.gradient} p-5 relative" style="background-color: ${app.bgColor}20;">
+                            <!-- Background logo blur effect -->
+                            <div class="absolute inset-0 overflow-hidden">
+                                <img src="${app.logo}" alt="" class="absolute -right-4 top-1/2 -translate-y-1/2 w-32 h-32 object-contain opacity-20 blur-sm" onerror="this.style.display='none'">
+                            </div>
+                            
+                            <div class="app-header-content flex items-center justify-between">
+                                <div class="flex items-center space-x-4">
+                                    <!-- App Logo -->
+                                    <div class="w-14 h-14 rounded-xl bg-white/10 backdrop-blur-sm p-2 flex items-center justify-center shadow-lg border border-white/20">
+                                        <img src="${app.logo}" alt="${app.name}" class="app-logo" onerror="this.outerHTML='<i class=\\'fas ${app.icon} text-3xl text-white\\'></i>'">
+                                    </div>
+                                    <div>
+                                        <h3 class="font-bold text-xl text-white drop-shadow-md">${app.name}</h3>
+                                        <p class="text-sm text-white/80">Port: ${app.port}</p>
+                                    </div>
+                                </div>
+                                <div class="flex flex-col items-end space-y-1">
+                                    <div class="flex items-center space-x-2 bg-black/20 backdrop-blur-sm px-3 py-1.5 rounded-full">
+                                        <span class="w-2.5 h-2.5 rounded-full ${isRunning ? 'bg-green-400 status-online' : 'bg-red-400'}"></span>
+                                        <span class="text-sm font-medium text-white">${isRunning ? 'Running' : 'Stopped'}</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="p-5">
+                            <p class="text-gray-400 text-sm mb-4">${app.desc}</p>
+                            ${status.installed ? `
+                                <div class="grid grid-cols-4 gap-2 mb-4">
+                                    <button onclick="controlApp('${app.id}', '${isRunning ? 'stop' : 'start'}')" 
+                                            class="btn-action ${isRunning ? 'bg-red-600 hover:bg-red-700' : 'bg-green-600 hover:bg-green-700'} p-2.5 rounded-lg text-xs font-medium" title="${isRunning ? 'Stop' : 'Start'}">
+                                        <i class="fas fa-${isRunning ? 'stop' : 'play'}"></i>
+                                    </button>
+                                    <button onclick="controlApp('${app.id}', 'restart')" 
+                                            class="btn-action bg-blue-600 hover:bg-blue-700 p-2.5 rounded-lg text-xs font-medium" title="Restart">
+                                        <i class="fas fa-redo"></i>
+                                    </button>
+                                    <button onclick="controlApp('${app.id}', 'update')" 
+                                            class="btn-action bg-purple-600 hover:bg-purple-700 p-2.5 rounded-lg text-xs font-medium" title="Update">
+                                        <i class="fas fa-arrow-up"></i>
+                                    </button>
+                                    <button onclick="controlApp('${app.id}', 'delete')" 
+                                            class="btn-action bg-gray-600 hover:bg-gray-700 p-2.5 rounded-lg text-xs font-medium" title="Delete">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                </div>
+                                <div class="flex space-x-2">
+                                    <a href="http://localhost:${app.port}" target="_blank" 
+                                       class="flex-1 bg-gray-700 hover:bg-gray-600 py-2.5 rounded-lg text-sm text-center transition font-medium">
+                                        <i class="fas fa-sign-in-alt mr-1"></i> Login
+                                    </a>
+                                    <button onclick="viewLogs('${app.id}')" 
+                                            class="flex-1 bg-gray-700 hover:bg-gray-600 py-2.5 rounded-lg text-sm transition font-medium">
+                                        <i class="fas fa-file-alt mr-1"></i> Logs
+                                    </button>
+                                </div>
+                            ` : `
+                                <button onclick="controlApp('${app.id}', 'install')" 
+                                        class="w-full bg-green-600 hover:bg-green-700 py-3 rounded-lg font-medium transition">
+                                    <i class="fas fa-download mr-2"></i> Install
+                                </button>
+                            `}
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function renderQuickStatus() {
+            const container = document.getElementById('quickStatus');
+            container.innerHTML = apps.map(app => {
+                const status = appStatus[app.id];
+                const isRunning = status.status === 'running';
+                return `
+                    <div class="bg-gray-800/50 rounded-xl p-4 text-center hover:bg-gray-700/50 transition cursor-pointer" onclick="showTab('apps')">
+                        <div class="w-14 h-14 mx-auto mb-2 rounded-xl flex items-center justify-center p-2 ${isRunning ? 'bg-green-900/30 ring-2 ring-green-500/30' : 'bg-red-900/30 ring-2 ring-red-500/30'}">
+                            <img src="${app.logo}" alt="${app.name}" class="w-10 h-10 object-contain" onerror="this.outerHTML='<i class=\\'fas ${app.icon} text-2xl ${isRunning ? 'text-green-400' : 'text-red-400'}\\'></i>'">
+                        </div>
+                        <p class="font-medium text-sm">${app.name}</p>
+                        <div class="flex items-center justify-center space-x-1 mt-1">
+                            <span class="w-2 h-2 rounded-full ${isRunning ? 'bg-green-400 status-online' : 'bg-red-400'}"></span>
+                            <p class="text-xs ${isRunning ? 'text-green-400' : 'text-red-400'}">${isRunning ? 'Online' : 'Offline'}</p>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function updateSystemStats() {
+            document.getElementById('uptime').textContent = `${systemStats.uptime.days}d ${systemStats.uptime.hours}h ${systemStats.uptime.minutes}m`;
+            
+            document.getElementById('cpuUsage').textContent = `${systemStats.cpu}%`;
+            document.getElementById('cpuBar').style.width = `${systemStats.cpu}%`;
+            
+            document.getElementById('memoryUsage').textContent = `${systemStats.memory.used} / ${systemStats.memory.total} GB`;
+            document.getElementById('memoryBar').style.width = `${systemStats.memory.percent}%`;
+            
+            document.getElementById('diskUsage').textContent = `${systemStats.disk.free} TB Free`;
+            document.getElementById('diskBar').style.width = `${systemStats.disk.percent}%`;
+        }
+
+        let resourceChart, storageChart;
+
+        function initCharts() {
+            // Resource usage chart
+            const ctx1 = document.getElementById('resourceChart').getContext('2d');
+            resourceChart = new Chart(ctx1, {
+                type: 'line',
+                data: {
+                    labels: Array.from({length: 24}, (_, i) => `${i}:00`),
+                    datasets: [
+                        {
+                            label: 'CPU %',
+                            data: Array.from({length: 24}, () => Math.floor(Math.random() * 50) + 20),
+                            borderColor: '#3B82F6',
+                            backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                            fill: true,
+                            tension: 0.4
+                        },
+                        {
+                            label: 'Memory %',
+                            data: Array.from({length: 24}, () => Math.floor(Math.random() * 30) + 30),
+                            borderColor: '#A855F7',
+                            backgroundColor: 'rgba(168, 85, 247, 0.1)',
+                            fill: true,
+                            tension: 0.4
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: { labels: { color: '#9CA3AF' } }
+                    },
+                    scales: {
+                        x: { ticks: { color: '#6B7280' }, grid: { color: 'rgba(75, 85, 99, 0.3)' } },
+                        y: { ticks: { color: '#6B7280' }, grid: { color: 'rgba(75, 85, 99, 0.3)' }, max: 100 }
+                    }
+                }
+            });
+
+            // Storage chart
+            const ctx2 = document.getElementById('storageChart').getContext('2d');
+            storageChart = new Chart(ctx2, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Movies', 'TV Shows', 'Downloads', 'System', 'Free Space'],
+                    datasets: [{
+                        data: [1.5, 1.2, 0.5, 0.3, 4.5],
+                        backgroundColor: ['#F97316', '#3B82F6', '#10B981', '#6B7280', '#374151'],
+                        borderWidth: 0
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: {
+                            position: 'right',
+                            labels: { color: '#9CA3AF', padding: 15 }
+                        }
+                    },
+                    cutout: '60%'
+                }
+            });
+        }
+
+        function simulateUpdates() {
+            // Update CPU
+            systemStats.cpu = Math.floor(Math.random() * 30) + 20;
+            systemStats.memory.used = parseFloat((Math.random() * 8 + 10).toFixed(1));
+            systemStats.memory.percent = Math.floor((systemStats.memory.used / systemStats.memory.total) * 100);
+            
+            updateSystemStats();
+            
+            // Update chart
+            if (resourceChart) {
+                resourceChart.data.datasets[0].data.shift();
+                resourceChart.data.datasets[0].data.push(systemStats.cpu);
+                resourceChart.data.datasets[1].data.shift();
+                resourceChart.data.datasets[1].data.push(systemStats.memory.percent);
+                resourceChart.update('none');
+            }
+        }
+
+        function controlApp(appId, action) {
+            const app = apps.find(a => a.id === appId);
+            showToast(`${action.charAt(0).toUpperCase() + action.slice(1)}ing ${app.name}...`, 'info');
+            
+            // Simulate API call
+            setTimeout(() => {
+                switch(action) {
+                    case 'start':
+                        appStatus[appId].status = 'running';
+                        showToast(`${app.name} started successfully`, 'success');
+                        break;
+                    case 'stop':
+                        appStatus[appId].status = 'stopped';
+                        showToast(`${app.name} stopped`, 'success');
+                        break;
+                    case 'restart':
+                        showToast(`${app.name} restarted`, 'success');
+                        break;
+                    case 'update':
+                        showToast(`${app.name} updated to latest version`, 'success');
+                        break;
+                    case 'install':
+                        appStatus[appId].installed = true;
+                        appStatus[appId].status = 'running';
+                        showToast(`${app.name} installed successfully`, 'success');
+                        break;
+                    case 'delete':
+                        appStatus[appId].installed = false;
+                        appStatus[appId].status = 'stopped';
+                        showToast(`${app.name} deleted`, 'success');
+                        break;
+                }
+                renderApps();
+                renderQuickStatus();
+            }, 1500);
+        }
+
+        function generateLogs() {
+            const logContainer = document.getElementById('logContainer');
+            const logTypes = ['INFO', 'DEBUG', 'WARN', 'ERROR'];
+            const logMessages = [
+                'Container health check passed',
+                'Starting application...',
+                'Connected to database',
+                'API request processed',
+                'Configuration loaded',
+                'Cache cleared successfully',
+                'Scheduled task completed',
+                'Media scan initiated',
+                'Download started: File.mkv',
+                'Indexer response received'
+            ];
+            
+            let logs = '';
+            for (let i = 0; i < 50; i++) {
+                const app = apps[Math.floor(Math.random() * apps.length)];
+                const type = logTypes[Math.floor(Math.random() * logTypes.length)];
+                const msg = logMessages[Math.floor(Math.random() * logMessages.length)];
+                const time = new Date(Date.now() - Math.random() * 3600000).toISOString();
+                
+                const color = {
+                    INFO: 'text-blue-400',
+                    DEBUG: 'text-gray-400',
+                    WARN: 'text-yellow-400',
+                    ERROR: 'text-red-400'
+                }[type];
+                
+                logs += `<div class="py-1"><span class="text-gray-500">${time}</span> <span class="${color}">[${type}]</span> <span class="text-purple-400">[${app.name}]</span> ${msg}</div>`;
+            }
+            logContainer.innerHTML = logs;
+        }
+
+        function viewLogs(appId) {
+            const app = apps.find(a => a.id === appId);
+            document.getElementById('logFilter').value = appId;
+            showTab('logs');
+            showToast(`Viewing logs for ${app.name}`, 'info');
+        }
+
+        function filterLogs() {
+            showToast('Logs filtered', 'info');
+        }
+
+        function refreshAll() {
+            showToast('Refreshing all applications...', 'info');
+            setTimeout(() => {
+                simulateUpdates();
+                generateLogs();
+                showToast('All data refreshed', 'success');
+            }, 1000);
+        }
+
+        function installApp() {
+            openModal('Install New Application', `
+                <p class="mb-4">Select an application to install:</p>
+                <div class="space-y-2">
+                    ${apps.filter(a => !appStatus[a.id].installed).map(app => `
+                        <button onclick="controlApp('${app.id}', 'install'); closeModal();" 
+                                class="w-full bg-gray-700 hover:bg-gray-600 p-3 rounded-lg text-left flex items-center space-x-3">
+                            <i class="fas ${app.icon} text-lg"></i>
+                            <div>
+                                <p class="font-medium">${app.name}</p>
+                                <p class="text-xs text-gray-400">${app.desc}</p>
+                            </div>
+                        </button>
+                    `).join('') || '<p class="text-gray-400">All applications are already installed.</p>'}
+                </div>
+            `);
+        }
+
+        function openModal(title, content) {
+            document.getElementById('modalTitle').textContent = title;
+            document.getElementById('modalContent').innerHTML = content;
+            document.getElementById('modal').classList.remove('hidden');
+        }
+
+        function closeModal() {
+            document.getElementById('modal').classList.add('hidden');
+        }
+
+        function showToast(message, type = 'success') {
+            const toast = document.getElementById('toast');
+            const icon = document.getElementById('toastIcon');
+            const msg = document.getElementById('toastMessage');
+            
+            const icons = {
+                success: 'fa-check-circle text-green-400',
+                error: 'fa-exclamation-circle text-red-400',
+                info: 'fa-info-circle text-blue-400'
+            };
+            
+            icon.className = `fas ${icons[type]} text-xl`;
+            msg.textContent = message;
+            
+            toast.classList.remove('translate-y-20', 'opacity-0');
+            
+            setTimeout(() => {
+                toast.classList.add('translate-y-20', 'opacity-0');
+            }, 3000);
+        }
+
+        // Deploy Guide Navigation
+        function showDeployStep(step) {
+            document.querySelectorAll('.deploy-step').forEach(el => el.classList.add('hidden'));
+            document.querySelectorAll('.deploy-step-btn').forEach(el => {
+                el.classList.remove('bg-blue-600');
+                el.classList.add('bg-gray-700');
+            });
+            
+            document.getElementById(`deploy-step-${step}`).classList.remove('hidden');
+            document.querySelectorAll('.deploy-step-btn')[step - 1].classList.remove('bg-gray-700');
+            document.querySelectorAll('.deploy-step-btn')[step - 1].classList.add('bg-blue-600');
+        }
+
+        // Close modal on outside click
+        document.getElementById('modal').addEventListener('click', (e) => {
+            if (e.target === document.getElementById('modal')) {
+                closeModal();
+            }
+        });
+    </script>
+</body>
+</html>
