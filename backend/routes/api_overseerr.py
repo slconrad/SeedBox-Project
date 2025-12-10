@@ -4,8 +4,8 @@ Phase 5: 'RR' stack API integrations
 """
 from flask import Blueprint, request, jsonify, current_app
 from flask_jwt_extended import jwt_required, get_jwt_identity
-from overseerr_service import OverseerrService
-from utils import handle_errors, log_audit
+from ..services.overseerr_service import OverseerrService
+from ..utils import handle_errors, log_audit
 import logging
 
 logger = logging.getLogger(__name__)

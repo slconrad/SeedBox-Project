@@ -4,9 +4,9 @@ Phase 1: Docker integration
 """
 from flask import Blueprint, request, jsonify, current_app
 from flask_jwt_extended import jwt_required, get_jwt_identity
-from docker_service import DockerService
-from models import AuditLog, db
-from utils import log_audit, handle_errors
+from ..services.docker_service import DockerService
+from ..models import AuditLog, db
+from ..utils import log_audit, handle_errors
 import logging
 
 logger = logging.getLogger(__name__)

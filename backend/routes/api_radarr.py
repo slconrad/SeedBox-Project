@@ -4,9 +4,9 @@ Phase 5: 'RR' stack API integrations
 """
 from flask import Blueprint, request, jsonify, current_app
 from flask_jwt_extended import jwt_required
-from radarr_service import RadarrService
-from models import AppConfig, MediaLibrary, db
-from utils import handle_errors, log_audit
+from ..services.radarr_service import RadarrService
+from ..models import AppConfig, MediaLibrary, db
+from ..utils import handle_errors, log_audit
 import logging
 
 logger = logging.getLogger(__name__)

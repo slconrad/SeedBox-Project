@@ -3,8 +3,8 @@ Plex Media Server routes
 """
 from flask import Blueprint, request, jsonify, current_app
 from flask_jwt_extended import jwt_required
-from plex_service import PlexService
-from utils import handle_errors, log_audit
+from ..services.plex_service import PlexService
+from ..utils import handle_errors, log_audit
 import logging
 
 logger = logging.getLogger(__name__)

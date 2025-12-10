@@ -4,9 +4,9 @@ Phase 1 & 4: System stats and WebSocket real-time updates
 """
 from flask import Blueprint, request, jsonify, current_app
 from flask_jwt_extended import jwt_required
-from system_service import SystemService
-from models import SystemMetric, ContainerMetric, db
-from utils import handle_errors
+from ..services.system_service import SystemService
+from ..models import SystemMetric, ContainerMetric, db
+from ..utils import handle_errors
 import logging
 
 logger = logging.getLogger(__name__)

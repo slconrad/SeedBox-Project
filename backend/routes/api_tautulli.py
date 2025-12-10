@@ -3,8 +3,8 @@ Tautulli (Plex Monitoring) routes
 """
 from flask import Blueprint, request, jsonify, current_app
 from flask_jwt_extended import jwt_required
-from tautulli_service import TautulliService
-from utils import handle_errors, log_audit
+from ..services.tautulli_service import TautulliService
+from ..utils import handle_errors, log_audit
 import logging
 
 logger = logging.getLogger(__name__)

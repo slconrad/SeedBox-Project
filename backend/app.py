@@ -8,8 +8,8 @@ from flask import Flask, render_template, jsonify
 from flask_cors import CORS
 from flask_jwt_extended import JWTManager
 from flask_socketio import SocketIO
-from models import db, User
-from config import config
+from .models import db, User
+from .config import config
 from datetime import datetime
 
 # Configure logging

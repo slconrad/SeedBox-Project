@@ -4,9 +4,9 @@ Phase 5: 'RR' stack API integrations
 """
 from flask import Blueprint, request, jsonify, current_app
 from flask_jwt_extended import jwt_required, get_jwt_identity
-from sonarr_service import SonarrService
-from models import AppConfig, db
-from utils import handle_errors, log_audit
+from ..services.sonarr_service import SonarrService
+from ..models import AppConfig, db
+from ..utils import handle_errors, log_audit
 import logging
 
 logger = logging.getLogger(__name__)
