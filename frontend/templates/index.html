@@ -1,0 +1,298 @@
+{% extends "base.html" %}
+
+{% block content %}
+<!-- Navigation Tabs -->
+<nav class="container mx-auto px-6 py-4">
+    <div class="flex space-x-2 bg-gray-800/50 rounded-xl p-2 overflow-x-auto">
+        <button onclick="showTab('dashboard')" id="tab-dashboard" class="tab-btn py-3 px-4 rounded-lg font-medium transition bg-blue-600 whitespace-nowrap">
+            <i class="fas fa-th-large mr-2"></i>Dashboard
+        </button>
+        <button onclick="showTab('apps')" id="tab-apps" class="tab-btn py-3 px-4 rounded-lg font-medium transition hover:bg-gray-700 whitespace-nowrap">
+            <i class="fas fa-cubes mr-2"></i>Applications
+        </button>
+        <button onclick="showTab('torrents')" id="tab-torrents" class="tab-btn py-3 px-4 rounded-lg font-medium transition hover:bg-gray-700 whitespace-nowrap">
+            <i class="fas fa-magnet mr-2"></i>Torrents
+        </button>
+        <button onclick="showTab('plex')" id="tab-plex" class="tab-btn py-3 px-4 rounded-lg font-medium transition hover:bg-gray-700 whitespace-nowrap">
+            <i class="fas fa-play-circle mr-2"></i>Plex
+        </button>
+        <button onclick="showTab('media')" id="tab-media" class="tab-btn py-3 px-4 rounded-lg font-medium transition hover:bg-gray-700 whitespace-nowrap">
+            <i class="fas fa-film mr-2"></i>Media
+        </button>
+        <button onclick="showTab('requests')" id="tab-requests" class="tab-btn py-3 px-4 rounded-lg font-medium transition hover:bg-gray-700 whitespace-nowrap">
+            <i class="fas fa-inbox mr-2"></i>Requests
+        </button>
+        <button onclick="showTab('logs')" id="tab-logs" class="tab-btn py-3 px-4 rounded-lg font-medium transition hover:bg-gray-700 whitespace-nowrap">
+            <i class="fas fa-terminal mr-2"></i>Logs
+        </button>
+    </div>
+</nav>
+
+<main class="container mx-auto px-6 pb-10">
+    <!-- Dashboard Tab -->
+    <div id="content-dashboard" class="tab-content active">
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+            <div class="card-gradient rounded-2xl p-6 border border-gray-700/50">
+                <div class="flex items-center justify-between mb-4">
+                    <span class="text-gray-400 text-sm">Server Uptime</span>
+                    <i class="fas fa-clock text-green-400"></i>
+                </div>
+                <p id="uptime" class="text-2xl font-bold">Loading...</p>
+            </div>
+            <div class="card-gradient rounded-2xl p-6 border border-gray-700/50">
+                <div class="flex items-center justify-between mb-4">
+                    <span class="text-gray-400 text-sm">CPU Usage</span>
+                    <i class="fas fa-microchip text-blue-400"></i>
+                </div>
+                <p id="cpuUsage" class="text-2xl font-bold">0%</p>
+                <div class="w-full bg-gray-700 rounded-full h-2 mt-2">
+                    <div id="cpuBar" class="bg-blue-500 h-2 rounded-full transition-all" style="width: 0%"></div>
+                </div>
+            </div>
+            <div class="card-gradient rounded-2xl p-6 border border-gray-700/50">
+                <div class="flex items-center justify-between mb-4">
+                    <span class="text-gray-400 text-sm">Memory Used</span>
+                    <i class="fas fa-memory text-purple-400"></i>
+                </div>
+                <p id="memoryUsage" class="text-2xl font-bold">0 GB</p>
+                <div class="w-full bg-gray-700 rounded-full h-2 mt-2">
+                    <div id="memoryBar" class="bg-purple-500 h-2 rounded-full transition-all" style="width: 0%"></div>
+                </div>
+            </div>
+            <div class="card-gradient rounded-2xl p-6 border border-gray-700/50">
+                <div class="flex items-center justify-between mb-4">
+                    <span class="text-gray-400 text-sm">Disk Space</span>
+                    <i class="fas fa-hdd text-orange-400"></i>
+                </div>
+                <p id="diskUsage" class="text-2xl font-bold">0 TB</p>
+                <div class="w-full bg-gray-700 rounded-full h-2 mt-2">
+                    <div id="diskBar" class="bg-orange-500 h-2 rounded-full transition-all" style="width: 0%"></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+            <div class="card-gradient rounded-2xl p-6 border border-gray-700/50">
+                <h3 class="text-lg font-semibold mb-4">Resource Usage (Last 24h)</h3>
+                <canvas id="resourceChart" height="200"></canvas>
+            </div>
+            <div class="card-gradient rounded-2xl p-6 border border-gray-700/50">
+                <h3 class="text-lg font-semibold mb-4">Application Status</h3>
+                <div class="grid grid-cols-2 md:grid-cols-3 gap-4" id="quickStatus"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Applications Tab -->
+    <div id="content-apps" class="tab-content">
+        <h2 class="text-2xl font-bold mb-6">Docker Applications</h2>
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" id="appGrid"></div>
+    </div>
+
+    <!-- Logs Tab -->
+    <div id="content-logs" class="tab-content">
+        <div class="flex justify-between items-center mb-6">
+            <h2 class="text-2xl font-bold">System Logs</h2>
+            <select id="logFilter" onchange="filterLogs()" class="bg-gray-800 border border-gray-700 rounded-lg px-4 py-2 text-sm">
+                <option value="all">All Applications</option>
+                <option value="radarr">Radarr</option>
+                <option value="sonarr">Sonarr</option>
+                <option value="plex">Plex</option>
+                <option value="overseerr">Overseerr</option>
+            </select>
+        </div>
+        <div class="terminal rounded-xl p-4 h-96 overflow-y-auto border border-gray-700" id="logContainer"></div>
+    </div>
+
+    <!-- Media Tab -->
+    <div id="content-media" class="tab-content">
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+            <!-- Radarr -->
+            <div class="card-gradient rounded-2xl p-6 border border-gray-700/50">
+                <h3 class="text-lg font-semibold mb-4"><i class="fas fa-film mr-2 text-orange-400"></i>Radarr - Movies</h3>
+                <div id="radarr-stats">
+                    <p class="text-gray-400">Loading...</p>
+                </div>
+            </div>
+
+            <!-- Sonarr -->
+            <div class="card-gradient rounded-2xl p-6 border border-gray-700/50">
+                <h3 class="text-lg font-semibold mb-4"><i class="fas fa-tv mr-2 text-blue-400"></i>Sonarr - TV Series</h3>
+                <div id="sonarr-stats">
+                    <p class="text-gray-400">Loading...</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <!-- Radarr Queue -->
+            <div class="card-gradient rounded-2xl p-6 border border-gray-700/50">
+                <h3 class="text-lg font-semibold mb-4">Radarr Download Queue</h3>
+                <div id="radarr-queue" class="space-y-2 max-h-96 overflow-y-auto"></div>
+            </div>
+
+            <!-- Sonarr Queue -->
+            <div class="card-gradient rounded-2xl p-6 border border-gray-700/50">
+                <h3 class="text-lg font-semibold mb-4">Sonarr Download Queue</h3>
+                <div id="sonarr-queue" class="space-y-2 max-h-96 overflow-y-auto"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Requests Tab -->
+    <div id="content-requests" class="tab-content">
+        <div class="flex justify-between items-center mb-6">
+            <h2 class="text-2xl font-bold">Media Requests</h2>
+            <select id="requestFilter" onchange="filterRequests()" class="bg-gray-800 border border-gray-700 rounded-lg px-4 py-2 text-sm">
+                <option value="all">All Requests</option>
+                <option value="pending">Pending</option>
+                <option value="approved">Approved</option>
+                <option value="available">Available</option>
+            </select>
+        </div>
+        <div id="requestsContainer" class="space-y-4"></div>
+    </div>
+
+    <!-- Torrents Tab (uTorrent & ruTorrent) -->
+    <div id="content-torrents" class="tab-content">
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+            <!-- uTorrent Stats -->
+            <div class="card-gradient rounded-2xl p-6 border border-gray-700/50">
+                <div class="flex items-center justify-between mb-4">
+                    <h3 class="text-lg font-semibold"><i class="fas fa-magnet mr-2 text-red-400"></i>uTorrent</h3>
+                    <button onclick="restartService('utorrent')" class="bg-red-600 hover:bg-red-700 px-3 py-1 rounded text-xs transition">
+                        <i class="fas fa-sync mr-1"></i>Restart
+                    </button>
+                </div>
+                <div id="utorrent-stats" class="space-y-2">
+                    <p class="text-gray-400">Loading...</p>
+                </div>
+            </div>
+
+            <!-- ruTorrent Stats -->
+            <div class="card-gradient rounded-2xl p-6 border border-gray-700/50">
+                <div class="flex items-center justify-between mb-4">
+                    <h3 class="text-lg font-semibold"><i class="fas fa-magnet mr-2 text-purple-400"></i>ruTorrent</h3>
+                    <button onclick="restartService('rutorrent')" class="bg-purple-600 hover:bg-purple-700 px-3 py-1 rounded text-xs transition">
+                        <i class="fas fa-sync mr-1"></i>Restart
+                    </button>
+                </div>
+                <div id="rutorrent-stats" class="space-y-2">
+                    <p class="text-gray-400">Loading...</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Torrent Lists -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <!-- uTorrent Torrents -->
+            <div class="card-gradient rounded-2xl p-6 border border-gray-700/50">
+                <h3 class="text-lg font-semibold mb-4">uTorrent Torrents</h3>
+                <div id="utorrent-torrents" class="space-y-2 max-h-96 overflow-y-auto"></div>
+            </div>
+
+            <!-- ruTorrent Torrents -->
+            <div class="card-gradient rounded-2xl p-6 border border-gray-700/50">
+                <h3 class="text-lg font-semibold mb-4">ruTorrent Torrents</h3>
+                <div id="rutorrent-torrents" class="space-y-2 max-h-96 overflow-y-auto"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Plex Tab -->
+    <div id="content-plex" class="tab-content">
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
+            <!-- Plex Server Status -->
+            <div class="card-gradient rounded-2xl p-6 border border-gray-700/50">
+                <div class="flex items-center justify-between mb-4">
+                    <h3 class="text-lg font-semibold"><i class="fas fa-server mr-2 text-yellow-400"></i>Plex Server</h3>
+                    <button onclick="restartService('plex')" class="bg-yellow-600 hover:bg-yellow-700 px-3 py-1 rounded text-xs transition">
+                        <i class="fas fa-sync mr-1"></i>Restart
+                    </button>
+                </div>
+                <div id="plex-status" class="space-y-2">
+                    <p class="text-gray-400">Loading...</p>
+                </div>
+            </div>
+
+            <!-- Tautulli Status -->
+            <div class="card-gradient rounded-2xl p-6 border border-gray-700/50">
+                <div class="flex items-center justify-between mb-4">
+                    <h3 class="text-lg font-semibold"><i class="fas fa-chart-bar mr-2 text-pink-400"></i>Tautulli</h3>
+                    <button onclick="restartService('tautulli')" class="bg-pink-600 hover:bg-pink-700 px-3 py-1 rounded text-xs transition">
+                        <i class="fas fa-sync mr-1"></i>Restart
+                    </button>
+                </div>
+                <div id="tautulli-status" class="space-y-2">
+                    <p class="text-gray-400">Loading...</p>
+                </div>
+            </div>
+
+            <!-- Active Sessions -->
+            <div class="card-gradient rounded-2xl p-6 border border-gray-700/50">
+                <h3 class="text-lg font-semibold mb-4"><i class="fas fa-users mr-2 text-green-400"></i>Active Sessions</h3>
+                <div id="plex-sessions" class="space-y-2">
+                    <p class="text-gray-400">Loading...</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Plex Libraries -->
+        <div class="card-gradient rounded-2xl p-6 border border-gray-700/50">
+            <h3 class="text-lg font-semibold mb-4">Media Libraries</h3>
+            <div id="plex-libraries" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"></div>
+        </div>
+
+        <!-- Tautulli Users & History -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-6">
+            <div class="card-gradient rounded-2xl p-6 border border-gray-700/50">
+                <h3 class="text-lg font-semibold mb-4">Users</h3>
+                <div id="tautulli-users" class="space-y-2 max-h-96 overflow-y-auto"></div>
+            </div>
+            <div class="card-gradient rounded-2xl p-6 border border-gray-700/50">
+                <h3 class="text-lg font-semibold mb-4">Recent Streams</h3>
+                <div id="plex-history" class="space-y-2 max-h-96 overflow-y-auto"></div>
+            </div>
+        </div>
+    </div>
+</main>
+
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+// Tab management
+function showTab(tabName) {
+    document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+    document.querySelectorAll('.tab-btn').forEach(el => {
+        el.classList.remove('bg-blue-600');
+        el.classList.add('hover:bg-gray-700');
+    });
+    
+    document.getElementById(`content-${tabName}`).classList.add('active');
+    document.getElementById(`tab-${tabName}`).classList.add('bg-blue-600');
+    document.getElementById(`tab-${tabName}`).classList.remove('hover:bg-gray-700');
+    
+    // Load tab-specific data
+    if (tabName === 'media') {
+        loadMediaData();
+    } else if (tabName === 'requests') {
+        loadRequests();
+    } else if (tabName === 'logs') {
+        loadLogs();
+    } else if (tabName === 'torrents') {
+        loadTorrentData();
+    } else if (tabName === 'plex') {
+        loadPlexData();
+    }
+}
+
+// Load system stats on page load
+document.addEventListener('DOMContentLoaded', async () => {
+    await loadSystemStats();
+    await loadContainers();
+    setInterval(loadSystemStats, 5000);
+    setInterval(loadContainers, 10000);
+});
+</script>
+{% endblock %}
