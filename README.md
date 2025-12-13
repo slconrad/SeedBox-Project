@@ -1,5 +1,5 @@
 🎛️ Seedbox Control Panel (Beta)
-A lightweight, unified dashboard to manage your media stack. Start, stop, and monitor Sonarr, Radarr, and your Torrent Client (qBittorrent/Transmission) from a single interface.
+This is a lightweight, unified dashboard to manage your media stack. Start, stop, and monitor Sonarr, Radarr, and your Torrent Client (qBittorrent/Transmission) from a single interface.
 
 ⚠️ Beta Warning: This project is currently in early development. Features may be unstable. Please report any bugs in the Issues tab.
 
